@@ -1,3 +1,5 @@
-## Junwoo's Github Page
+# About
+Oh Hi! You found this page. Are you bored yet?
 
-# PX4 Stuff
+# Projects
+## PX4 Stuff
