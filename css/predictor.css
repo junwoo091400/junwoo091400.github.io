@@ -211,6 +211,12 @@ html, body, #map_canvas {
     display: none;
 }
 
+.marker-labels {
+    font-size: 15px;
+    font-weight: bold;
+    color: seagreen;
+}
+
 /* the vehicle_button buttons from spacenear */
 .control_buttons {
     border: solid #aed0ea 1px;

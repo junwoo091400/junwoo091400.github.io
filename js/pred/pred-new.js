@@ -141,7 +141,6 @@ var MAX_PRED_LOOPS = 10;
 function tawhiriRequest(settings, extra_settings){
     // Request a prediction via the Tawhiri API.
     // Settings must be as per the API docs above.
-
     if(settings.pred_type=='single'){
         hourly_mode = false;
 
@@ -368,7 +367,7 @@ function parsePrediction(prediction){
         _lon = _lon - 360.0;
     }
     launch.latlng = L.latLng([launch_obj.latitude, _lon, launch_obj.altitude]);
-    launch.datetime = moment.utc(launch_obj.datetime);
+    launch.datetime = moment(launch_obj.datetime); // Use KST
 
     var burst_obj = descent[0];
     var _lon = burst_obj.longitude;
@@ -376,7 +375,7 @@ function parsePrediction(prediction){
         _lon = _lon - 360.0;
     }
     burst.latlng = L.latLng([burst_obj.latitude, _lon, burst_obj.altitude]);
-    burst.datetime = moment.utc(burst_obj.datetime);
+    burst.datetime = moment(burst_obj.datetime); // Use KST
 
     var landing_obj = descent[descent.length - 1];
     var _lon = landing_obj.longitude;
@@ -384,7 +383,7 @@ function parsePrediction(prediction){
         _lon = _lon - 360.0;
     }
     landing.latlng = L.latLng([landing_obj.latitude, _lon, landing_obj.altitude]);
-    landing.datetime = moment.utc(landing_obj.datetime);
+    landing.datetime = moment(landing_obj.datetime); // Use KST
 
     var profile = null;
     if(prediction[1].stage == 'descent'){
@@ -395,11 +394,10 @@ function parsePrediction(prediction){
 
     var flight_time = landing.datetime.diff(launch.datetime, 'seconds');
 
-    return {'flight_path': flight_path, 'launch': launch, 'burst': burst, 'landing':landing, 'profile': profile, 'flight_time': flight_time};
+    return {'flight_path': flight_path, 'launch': launch, 'burst': burst, 'landing':landing, 'profile': profile, 'flight_time': flight_time, 'ascent': ascent, 'float': descent};
 }
 
 function plotStandardPrediction(prediction){
-
     appendDebug("Flight data parsed, creating map plot...");
 
     var launch = prediction.launch;
@@ -420,28 +418,39 @@ function plotStandardPrediction(prediction){
     // Make some nice icons
     var launch_icon = L.icon({
         iconUrl: launch_img,
-        iconSize: [10,10],
+        iconSize: [20,20],
         iconAnchor: [5,5]
     });
 
     var land_icon = L.icon({
         iconUrl: land_img,
-        iconSize: [10,10],
+        iconSize: [20,20],
         iconAnchor: [5,5]
     });
 
     var burst_icon = L.icon({
         iconUrl: burst_img,
-        iconSize: [16,16],
+        iconSize: [20,20],
         iconAnchor: [8,8]
     });
 
+    var ascent_icon = L.icon({
+        iconUrl: "images/balloon.png",
+        iconSize: [20,20],
+        iconAnchor: [5,5]
+    });
+
+    var float_icon = L.icon({
+        iconUrl: "images/balloon.png",
+        iconSize: [20,20],
+        iconAnchor: [5,5]
+    });
 
     var launch_marker = L.marker(
         launch.latlng,
         {
             title: 'Balloon launch ('+launch.latlng.lat.toFixed(4)+', '+launch.latlng.lng.toFixed(4)+') at ' 
-            + launch.datetime.format("HH:mm") + " UTC",
+            + launch.datetime.format("HH:mm"),
             icon: launch_icon
         }
     ).addTo(map);
@@ -450,7 +459,7 @@ function plotStandardPrediction(prediction){
         landing.latlng,
         {
             title: 'Predicted Landing ('+landing.latlng.lat.toFixed(4)+', '+landing.latlng.lng.toFixed(4)+') at ' 
-            + landing.datetime.format("HH:mm") + " UTC",
+            + landing.datetime.format("HH:mm"),
             icon: land_icon
         }
     ).addTo(map);
@@ -460,21 +469,141 @@ function plotStandardPrediction(prediction){
         {
             title: 'Balloon burst ('+burst.latlng.lat.toFixed(4)+', '+burst.latlng.lng.toFixed(4)+ 
             ' at altitude ' + burst.latlng.alt.toFixed(0) + ') at ' 
-            + burst.datetime.format("HH:mm") + " UTC",
+            + burst.datetime.format("HH:mm"),
             icon: burst_icon
         }
     ).addTo(map);
 
+    // ascent dt = 1 minute
+    prediction.ascent.forEach(function (item, index){
+        // Plot ascent track every 10 minutes
+        if (index % 10 == 0 && index != 0) {
+            var _lat = item.latitude;
+            var _lon = item.longitude;
+            var _alt = item.altitude;
+        
+            var _marker = L.marker(
+                L.latLng(_lat, _lon, _alt),
+                {
+                    title: 'Ascent ('+_lat.toFixed(4)+', '+_lon.toFixed(4)+') at ' 
+                    + moment(item.datetime).format("HH:mm"),
+                    icon: ascent_icon
+                }
+            ).addTo(map);
+
+            // Plot time
+            // var _marker = L.marker(
+            //     L.latLng(_lat, _lon + 0.01, _alt),
+            //     {
+            //         title: moment(item.datetime).format("HH:mm"),
+            //         icon: L.divIcon({
+            //             className: 'marker-labels',
+            //             html: moment(item.datetime).format("HH:mm"),
+            //         })
+            //     }
+            // ).addTo(map);
+        }
+    });
+
+    // float dt = 20 minutes
+    prediction.float.forEach(function (item, index){
+            var _lat = item.latitude;
+            var _lon = item.longitude;
+            var _alt = item.altitude;
+
+            if (index < prediction.float.length - 1){
+                // Only 
+                var _lat_next = prediction.float[index+1].latitude;
+                var _lon_next = prediction.float[index+1].longitude;
+                var _alt_next = prediction.float[index+1].altitude;
+                var _mid_lat = (_lat + _lat_next) / 2;
+                var _mid_lon = (_lon + _lon_next) / 2;
+                var _mid_alt = (_alt + _alt_next) / 2;
+
+                // Only plot the mid point & the next if the next point is 20 minutes away
+                if (moment(item.datetime).add(20, 'minutes').format("HH:mm") != moment(prediction.float[index+1].datetime).format("HH:mm")){
+                    return;
+                }
+
+                // Middle point
+                var _marker = L.marker(
+                    L.latLng(_mid_lat, _mid_lon, _mid_alt),
+                    {
+                        title: 'Float ('+_lat.toFixed(4)+', '+_lon.toFixed(4)+') at ' 
+                        + moment(item.datetime).add(10, 'minutes').format("HH:mm"),
+                        icon: float_icon
+                    }
+                ).addTo(map);
+
+                // Plot the time
+                // var _marker = L.marker(
+                //     L.latLng(_mid_lat, _mid_lon, _mid_alt),
+                //     {
+                //         title: moment(item.datetime).add(10, 'minutes').format("HH:mm"),
+                //         icon: L.divIcon({
+                //             className: 'marker-labels',
+                //             html: moment(item.datetime).add(10, 'minutes').format("HH:mm"),
+                //         })
+                //     }
+                // ).addTo(map);
+
+                // Next point
+                var _marker = L.marker(
+                    L.latLng(_lat_next, _lon_next, _alt_next),
+                    {
+                        title: 'Float ('+_lat.toFixed(4)+', '+_lon.toFixed(4)+') at ' 
+                        + moment(prediction.float[index+1].datetime).format("HH:mm"),
+                        icon: float_icon
+                    }
+                ).addTo(map);
+
+                // Plot time
+                // var _marker = L.marker(
+                //     L.latLng(_lat_next, _lon_next, _alt_next),
+                //     {
+                //         title: moment(prediction.float[index+1].datetime).format("HH:mm"),
+                //         icon: L.divIcon({
+                //             className: 'marker-labels',
+                //             html: moment(prediction.float[index+1].datetime).format("HH:mm"),
+                //         })
+                //     }
+                // ).addTo(map);
+            }
+    });
+
+    // float dt = 20 minutes
+
+    // for (var i = 10; i < prediction.flight_path.length; i++) {
+    //     var _lat = prediction.flight_path[i][0];
+    //     var _lon = prediction.flight_path[i][1];
+    //     var _alt = prediction.flight_path[i][2];
+        
+    //     // Every 10 minutes add a marker
+    //     if (i % 10 == 0) {
+    //         var _marker = L.marker(
+    //             L.latLng(_lat, _lon, _alt),
+    //             {
+    //                 title: 'Predicted position ('+_lat.toFixed(4)+', '+_lon.toFixed(4)+') at ' 
+    //                 + prediction.launch.datetime.add(i, 'minutes').format("HH:mm") + " UTC",
+    //                 icon: burst_icon
+    //                 // icon: L.divIcon({
+    //                 //     className: 'marker-labels',
+    //                 //     html: prediction.launch.datetime.add(i, 'minutes').format("HH:mm"),
+    //                 //     iconSize: [23, 23]
+    //                 // })
+    //             }
+    //         ).addTo(map);
+    //     }
+    // }
+
     var path_polyline = L.polyline(
         prediction.flight_path,
         {
-            weight: 4,
-            opacity: 0.5,
+            weight: 6,
+            opacity: 1.0,
             color: '#000000'
         }
     ).addTo(map);
-
-
 
     // Add the launch/land markers to map
     // We might need access to these later, so push them associatively
