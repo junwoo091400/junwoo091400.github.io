@@ -474,6 +474,8 @@ function plotStandardPrediction(prediction){
         }
     ).addTo(map);
 
+    map_items['interval_marker'] = []
+
     // ascent dt = 1 minute
     prediction.ascent.forEach(function (item, index){
         // Plot ascent track every 10 minutes
@@ -490,6 +492,8 @@ function plotStandardPrediction(prediction){
                     icon: ascent_icon
                 }
             ).addTo(map);
+
+            map_items['interval_marker'].push(_marker);
 
             // Plot time
             // var _marker = L.marker(
@@ -535,6 +539,8 @@ function plotStandardPrediction(prediction){
                     }
                 ).addTo(map);
 
+                map_items["interval_marker"].push(_marker);
+
                 // Plot the time
                 // var _marker = L.marker(
                 //     L.latLng(_mid_lat, _mid_lon, _mid_alt),
@@ -556,6 +562,8 @@ function plotStandardPrediction(prediction){
                         icon: float_icon
                     }
                 ).addTo(map);
+                
+                map_items["interval_marker"].push(_marker);
 
                 // Plot time
                 // var _marker = L.marker(

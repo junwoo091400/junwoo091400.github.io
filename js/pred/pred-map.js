@@ -182,7 +182,13 @@ function clearMapItems() {
     if( getAssocSize(map_items) > 0 ) {
         appendDebug("Clearing previous map trace");
         for( i in map_items ) {
-            map_items[i].remove();
+            if (Array.isArray(map_items[i])) {
+                for( j in map_items[i] ) {
+                    map_items[i][j].remove();
+                }
+            } else {
+                map_items[i].remove();
+            }
         }
     }
     map_items = [];
