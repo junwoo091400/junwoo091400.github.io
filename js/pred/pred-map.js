@@ -83,10 +83,8 @@ function enableMap(map, state) {
 // This should be called on a "mousemove" event handler on the map canvas
 // and will update scenario information display
 function showMousePos(LatLng) {
-    var curr_lat = LatLng.lat.toFixed(4);
-    var curr_lon = LatLng.lng.toFixed(4);
-    $("#cursor_lat").html(curr_lat);
-    $("#cursor_lon").html(curr_lon);
+    mgrs_coord = forward([LatLng.lng, LatLng.lat], 5);
+    $("#cursor_mgrs").html(mgrs_coord);
     // if we have a prediction displayed
     // show range from launch and land:
     if ( (map_items['launch_marker'] != null) && (hourly_mode == false)) {

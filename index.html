@@ -27,6 +27,7 @@
     <script src="js/calc/calc.js" type="text/javascript"></script>
     <script src="js/colour-map.js" type="text/javascript"></script>
     <script src="js/L.KML.js" type="text/javascript"></script>
+    <script src="js/mgrs.js" type="text/javascript"></script>
 
     <!-- Add 'Enter' key bind to prediction computation -->
     <script>$(document).keypress(function(e){
@@ -66,9 +67,8 @@
 <div id="scenario_info" class="box ui-corner-all">
     <img src="images/drag_handle.png" class="handle" />
     <h1>정보 패널</h1>
-    <span id="cursor_info">마우스 커서 좌표: 
-        위도: <span id="cursor_lat">?</span> 
-        경도: <span id="cursor_lon">?</span>
+    <span id="cursor_info"><b>마우스 커서 위치 (MGRS)</b>: 
+        <span id="cursor_mgrs">???????????</span> 
     </span><br />
     <span id="cursor_pred" style="display:none">
         Range: <span id="cursor_pred_range"></span>km, 
