@@ -1,0 +1,22 @@
+{
+    "West (Yeoni Mt)": {
+        "altitude"  :   300,
+        "latitude"  :   37.8419,
+        "longitude" :   126.6316
+    },
+    "Mid (Gangsan-ri)": {
+        "altitude"  :   300,
+        "latitude"  :   38.3304,
+        "longitude" :   127.2903
+    },
+    "East (Gamho-ri)": {
+        "altitude"  :   300,
+        "latitude"  :   38.6357,
+        "longitude" :   128.3480
+    },
+    "Gaesung": {
+        "altitude"  :   300,
+        "latitude"  :   37.9561,
+        "longitude" :   126.5536
+    }
+}
